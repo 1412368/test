@@ -105,7 +105,7 @@ paths:
       tags:
       - product
       description: create product
-      operationId: ProductController.CreateProduct
+      operationId: ProductController.AddProduct
       parameters:
       - in: body
         name: body
@@ -116,6 +116,24 @@ paths:
       responses:
         "200":
           description: returnObj
+        "403":
+          description: body is empty
+  /product/purchase:
+    post:
+      tags:
+      - product
+      description: buy product
+      operationId: ProductController.Purchase product
+      parameters:
+      - in: body
+        name: body
+        description: body for purchase
+        required: true
+        schema:
+          $ref: '#/definitions/models.PurchaseOrder'
+      responses:
+        "200":
+          description: bool
         "403":
           description: body is empty
   /user/:
@@ -240,12 +258,59 @@ definitions:
   models.Object:
     title: Object
     type: object
+    properties:
+      ObjectId:
+        type: string
+      PlayerName:
+        type: string
+      Score:
+        type: integer
+        format: int64
   models.Product:
     title: Product
     type: object
+    properties:
+      ProductID:
+        type: integer
+        format: int64
+      Quality:
+        type: integer
+        format: int64
+  models.Profile:
+    title: Profile
+    type: object
+    properties:
+      Address:
+        type: string
+      Age:
+        type: integer
+        format: int64
+      Email:
+        type: string
+      Gender:
+        type: string
+  models.PurchaseOrder:
+    title: PurchaseOrder
+    type: object
+    properties:
+      ProductID:
+        type: integer
+        format: int64
+      quality:
+        type: integer
+        format: int64
   models.User:
     title: User
     type: object
+    properties:
+      Id:
+        type: string
+      Password:
+        type: string
+      Profile:
+        $ref: '#/definitions/models.Profile'
+      Username:
+        type: string
 tags:
 - name: object
   description: |
@@ -255,4 +320,4 @@ tags:
     Operations about Users
 - name: product
   description: |
-    Operations about Product
+    ProductController  Operations about Product
