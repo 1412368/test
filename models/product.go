@@ -37,13 +37,6 @@ func init() {
 	// UserList["user_11111"] = &u
 }
 
-func seedDB() {
-	product1 := Product{ProductID: 1, Quatity: 10}
-	product2 := Product{ProductID: 2, Quatity: 5}
-	AddProduct(product1)
-	AddProduct(product2)
-}
-
 //FindProduct find one product in db
 //@Params productID
 func FindProduct(productID int64) (product Product, successful bool) {
@@ -83,17 +76,17 @@ func Purchase(purchaseOrder PurchaseOrder, transaction *orm.Ormer) bool {
 //Purchases array of order
 func Purchases(purchaseOrderList []PurchaseOrder) bool {
 	o := orm.NewOrm()
-	err := o.Begin()
+	_, err := o.Raw("START TRANSACTION").Exec()
 	if err != nil {
 		return false
 	}
 	for _, purchaseOrder := range purchaseOrderList {
 		result := Purchase(purchaseOrder, &o)
 		if !result {
-			o.Rollback()
+			o.Raw("ROLLBACK").Exec()
 			return false
 		}
 	}
-	o.Commit()
+	o.Raw("COMMIT").Exec()
 	return true
 }

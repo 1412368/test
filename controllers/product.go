@@ -7,11 +7,6 @@ import (
 	"github.com/astaxie/beego"
 )
 
-type returnObj struct {
-	successful bool
-	id         int64
-}
-
 //ProductController  Operations about Product
 type ProductController struct {
 	beego.Controller
@@ -21,7 +16,7 @@ type ProductController struct {
 // @Title AddProduct
 // @Description create product
 // @Param	body		body 		models.Product	true		"body for product content"
-// @Success 200 	returnObj
+// @Success 200 	{object} models.Status
 // @Failure 403 body is empty
 // @router /AddProduct [Post]
 func (p *ProductController) AddProduct() {
@@ -30,9 +25,9 @@ func (p *ProductController) AddProduct() {
 	if err != nil {
 		panic(err)
 	}
-	var result returnObj
-	result.id, result.successful = models.AddProduct(product)
-	p.Data["json"] = &result
+	_, result := models.AddProduct(product)
+	returnObj := models.Status{Successful: result}
+	p.Data["json"] = &returnObj
 	p.ServeJSON()
 }
 
@@ -40,16 +35,24 @@ func (p *ProductController) AddProduct() {
 // @Title Purchases product
 // @Description buy product
 // @Param	body		body 		[]models.PurchaseOrder	true		"body for purchase"
-// @Success 200 	bool
-// @Failure 403 body is empty
+// @Success 200 	{object} models.Status
+// @Failure 403 	body not found
+// @Failure 422		not enough stock
 // @router /purchases [Post]
 func (p *ProductController) Purchases() {
 	var purchaseOrderList []models.PurchaseOrder
 	err := json.Unmarshal(p.Ctx.Input.RequestBody, &purchaseOrderList)
+	var returnObj models.Status
 	if err != nil {
-		panic(err)
+		p.Ctx.Output.SetStatus(403)
+		returnObj = models.Status{Successful: false}
+	} else {
+		result := models.Purchases(purchaseOrderList)
+		returnObj = models.Status{Successful: result}
+		if !result {
+			p.Ctx.Output.SetStatus(422)
+		}
 	}
-	result := models.Purchases(purchaseOrderList)
-	p.Data["json"] = &result
+	p.Data["json"] = &returnObj
 	p.ServeJSON()
 }

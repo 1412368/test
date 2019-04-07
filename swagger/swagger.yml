@@ -26,7 +26,9 @@ paths:
           $ref: '#/definitions/models.Product'
       responses:
         "200":
-          description: returnObj
+          description: ""
+          schema:
+            $ref: '#/definitions/models.Status'
         "403":
           description: body is empty
   /product/purchases:
@@ -46,9 +48,13 @@ paths:
             $ref: '#/definitions/models.PurchaseOrder'
       responses:
         "200":
-          description: bool
+          description: ""
+          schema:
+            $ref: '#/definitions/models.Status'
         "403":
-          description: body is empty
+          description: body not found
+        "422":
+          description: not enough stock
 definitions:
   models.Product:
     title: Product
@@ -70,6 +76,12 @@ definitions:
       Quatity:
         type: integer
         format: int64
+  models.Status:
+    title: Status
+    type: object
+    properties:
+      Successful:
+        type: boolean
 tags:
 - name: product
   description: |
