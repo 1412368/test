@@ -101,10 +101,44 @@ func TestPostPurchasesCase3(t *testing.T) {
 	var jsonStr2 = []byte(`[
 		{
 		  "ProductID": 1,
+		  "Quatity": 1
+		},{
+		  "ProductID": 2,
+		  "Quatity": 2
+		}
+	      ]`)
+	go CreatRequest(jsonStr, requests)
+	go CreatRequest(jsonStr2, requests)
+	w1 := <-requests
+	w2 := <-requests
+	Convey("Subject: Test Station Endpoint\n", t, func() {
+		Convey("Status Code Should Be 200", func() {
+			So(w1.Code, ShouldEqual, 200)
+			So(w2.Code, ShouldEqual, 200)
+		})
+	})
+}
+
+func TestPostPurchasesCase4(t *testing.T) {
+	SeedDB()
+	requests := make(chan httptest.ResponseRecorder, 2)
+	var jsonStr = []byte(`[
+		{
+		  "ProductID": 1,
 		  "Quatity": 2
 		},{
 		  "ProductID": 2,
 		  "Quatity": 1
+		}
+	      ]`)
+
+	var jsonStr2 = []byte(`[
+		{
+		  "ProductID": 1,
+		  "Quatity": 1
+		},{
+		  "ProductID": 2,
+		  "Quatity": 5
 		}
 	      ]`)
 	go CreatRequest(jsonStr, requests)

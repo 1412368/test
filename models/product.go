@@ -28,6 +28,7 @@ type Product struct {
 	Quatity   int64     `json:"Quatity"`
 	Created   time.Time `json:"-" orm:"auto_now_add;type(datetime)"`
 	Updated   time.Time `json:"-" orm:"auto_now;type(datetime)"`
+	Version   int64     `orm:"default(1)"`
 }
 
 func init() {
@@ -55,38 +56,56 @@ func AddProduct(product Product) (id int64, successful bool) {
 }
 
 //Purchase product
-func Purchase(purchaseOrder PurchaseOrder, transaction *orm.Ormer) bool {
+// errorType 1 is updated DB by other transaction
+func Purchase(purchaseOrder PurchaseOrder, transaction *orm.Ormer) (success bool, errorType int) {
 	o := *transaction
 	var product Product
 	qs := o.QueryTable("product")
 	err := qs.Filter("id", purchaseOrder.ProductID).Filter("quatity__gte", purchaseOrder.Quatity).One(&product)
 	if err == orm.ErrMultiRows {
 		// Have multiple records
-		return false
+		return false, 0
 	}
 	if err == orm.ErrNoRows {
 		// No result
-		return false
+		return false, 0
 	}
 	product.Quatity = product.Quatity - purchaseOrder.Quatity
-	_, err = o.Update(&product)
-	return err == nil
+	num, err := qs.Filter("id", product.ProductID).Filter("Version__iexact", product.Version).Update(orm.Params{
+		"Quatity": product.Quatity,
+		"Version": product.Version + 1,
+	})
+	if num == 0 {
+		return false, 1
+	}
+	return err == nil, 0
 }
 
 //Purchases array of order
 func Purchases(purchaseOrderList []PurchaseOrder) bool {
 	o := orm.NewOrm()
-	_, err := o.Raw("START TRANSACTION").Exec()
-	if err != nil {
-		return false
-	}
-	for _, purchaseOrder := range purchaseOrderList {
-		result := Purchase(purchaseOrder, &o)
-		if !result {
-			o.Raw("ROLLBACK").Exec()
+	optimisticLock := true
+	for optimisticLock {
+		err := o.Begin()
+		if err != nil {
 			return false
 		}
+		updatedDbFlag := false
+		for _, purchaseOrder := range purchaseOrderList {
+			result, errType := Purchase(purchaseOrder, &o)
+			//Other transaction updated db. Need to rollback from start
+			if errType == 1 {
+				o.Rollback()
+				updatedDbFlag = true
+				break
+			}
+			if !result {
+				o.Rollback()
+				return false
+			}
+		}
+		optimisticLock = updatedDbFlag
 	}
-	o.Raw("COMMIT").Exec()
-	return true
+	err := o.Commit()
+	return err == nil
 }
