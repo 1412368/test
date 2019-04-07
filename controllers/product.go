@@ -36,20 +36,20 @@ func (p *ProductController) AddProduct() {
 	p.ServeJSON()
 }
 
-//Purchase product
-// @Title Purchase product
+//Purchases array of product
+// @Title Purchases product
 // @Description buy product
-// @Param	body		body 		models.PurchaseOrder	true		"body for purchase"
+// @Param	body		body 		[]models.PurchaseOrder	true		"body for purchase"
 // @Success 200 	bool
 // @Failure 403 body is empty
-// @router /purchase [Post]
-func (p *ProductController) Purchase() {
-	var purchaseOrder models.PurchaseOrder
-	err := json.Unmarshal(p.Ctx.Input.RequestBody, &purchaseOrder)
+// @router /purchases [Post]
+func (p *ProductController) Purchases() {
+	var purchaseOrderList []models.PurchaseOrder
+	err := json.Unmarshal(p.Ctx.Input.RequestBody, &purchaseOrderList)
 	if err != nil {
 		panic(err)
 	}
-	result := models.Purchase(purchaseOrder)
+	result := models.Purchases(purchaseOrderList)
 	p.Data["json"] = &result
 	p.ServeJSON()
 }
