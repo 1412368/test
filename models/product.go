@@ -43,7 +43,7 @@ func init() {
 func FindProduct(productID int64) (product Product, successful bool) {
 	o := orm.NewOrm()
 	result := Product{ProductID: productID}
-	err := o.Read(&product)
+	err := o.Read(&result)
 	return result, err == nil
 }
 
@@ -75,6 +75,7 @@ func Purchase(purchaseOrder PurchaseOrder, transaction *orm.Ormer) (success bool
 		"Quatity": product.Quatity,
 		"Version": product.Version + 1,
 	})
+	//Other transaction updated db
 	if num == 0 {
 		return false, 1
 	}

@@ -7,6 +7,7 @@ import (
 	"path/filepath"
 	"runtime"
 	"test/db"
+	"test/models"
 	_ "test/routers"
 	"testing"
 
@@ -54,7 +55,11 @@ func TestPostPurchasesCase1(t *testing.T) {
 	beego.BeeApp.Handlers.ServeHTTP(w, r)
 	Convey("Subject: Test Station Endpoint\n", t, func() {
 		Convey("Status Code Should Be 200", func() {
+			product1, _ := models.FindProduct(1)
+			product2, _ := models.FindProduct(2)
 			So(w.Code, ShouldEqual, 200)
+			So(product1.Quatity, ShouldEqual, 8)
+			So(product2.Quatity, ShouldEqual, 4)
 		})
 	})
 }
@@ -76,6 +81,10 @@ func TestPostPurchasesCase2(t *testing.T) {
 	Convey("Subject: Test Station Endpoint\n", t, func() {
 		Convey("Status Code Should Be 422", func() {
 			So(w.Code, ShouldEqual, 422)
+			product1, _ := models.FindProduct(1)
+			product2, _ := models.FindProduct(2)
+			So(product1.Quatity, ShouldEqual, 10)
+			So(product2.Quatity, ShouldEqual, 5)
 		})
 	})
 }
@@ -115,6 +124,10 @@ func TestPostPurchasesCase3(t *testing.T) {
 		Convey("Status Code Should Be 200", func() {
 			So(w1.Code, ShouldEqual, 200)
 			So(w2.Code, ShouldEqual, 200)
+			product1, _ := models.FindProduct(1)
+			product2, _ := models.FindProduct(2)
+			So(product1.Quatity, ShouldEqual, 7)
+			So(product2.Quatity, ShouldEqual, 2)
 		})
 	})
 }
