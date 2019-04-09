@@ -33,11 +33,18 @@ func SeedDB() {
 		  "ProductID": 2,
 		  "Quatity": 5
 		}`)
+	var jsonStr3 = []byte(`
+		{
+		  "ProductID": 3,
+		  "Quatity": 10
+		}`)
 	r, _ := http.NewRequest("POST", "/v1/product/AddProduct", bytes.NewBuffer(jsonStr))
 	r2, _ := http.NewRequest("POST", "/v1/product/AddProduct", bytes.NewBuffer(jsonStr2))
+	r3, _ := http.NewRequest("POST", "/v1/product/AddProduct", bytes.NewBuffer(jsonStr3))
 	w := httptest.NewRecorder()
 	beego.BeeApp.Handlers.ServeHTTP(w, r)
 	beego.BeeApp.Handlers.ServeHTTP(w, r2)
+	beego.BeeApp.Handlers.ServeHTTP(w, r3)
 }
 func TestPostPurchasesCase1(t *testing.T) {
 	SeedDB()
@@ -152,6 +159,72 @@ func TestPostPurchasesCase4(t *testing.T) {
 		},{
 		  "ProductID": 2,
 		  "Quatity": 5
+		}
+	      ]`)
+	go CreatRequest(jsonStr, requests)
+	go CreatRequest(jsonStr2, requests)
+	w1 := <-requests
+	w2 := <-requests
+	Convey("Subject: Test Station Endpoint\n", t, func() {
+		Convey("Status Code Should Be 200", func() {
+			So(w1.Code, ShouldEqual, 200)
+			So(w2.Code, ShouldEqual, 200)
+		})
+	})
+}
+
+func TestPostPurchasesCase5(t *testing.T) {
+	SeedDB()
+	requests := make(chan httptest.ResponseRecorder, 2)
+	var jsonStr = []byte(`[
+		{
+		  "ProductID": 1,
+		  "Quatity": 2
+		},{
+		  "ProductID": 2,
+		  "Quatity": 1
+		}
+	      ]`)
+
+	var jsonStr2 = []byte(`[
+		{
+		  "ProductID": 1,
+		  "Quatity": 1
+		}
+	      ]`)
+	go CreatRequest(jsonStr, requests)
+	go CreatRequest(jsonStr2, requests)
+	w1 := <-requests
+	w2 := <-requests
+	Convey("Subject: Test Station Endpoint\n", t, func() {
+		Convey("Status Code Should Be 200", func() {
+			So(w1.Code, ShouldEqual, 200)
+			So(w2.Code, ShouldEqual, 200)
+		})
+	})
+}
+
+func TestPostPurchasesCase6(t *testing.T) {
+	SeedDB()
+	requests := make(chan httptest.ResponseRecorder, 2)
+	var jsonStr = []byte(`[
+		{
+		  "ProductID": 1,
+		  "Quatity": 2
+		},{
+		  "ProductID": 2,
+		  "Quatity": 1
+		}
+	      ]`)
+
+	var jsonStr2 = []byte(`[
+		{
+		  "ProductID": 1,
+		  "Quatity": 1
+		},
+		{
+		  "ProductID": 3,
+		  "Quatity": 2
 		}
 	      ]`)
 	go CreatRequest(jsonStr, requests)
